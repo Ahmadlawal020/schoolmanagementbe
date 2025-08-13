@@ -43,12 +43,7 @@ const studentSchema = new Schema(
     },
 
     // Academic Info
-    currentClass: {
-      grade: { type: String, required: true },
-      section: { type: String },
-      rollNumber: { type: String },
-      house: { type: String },
-    },
+    gradeLevel: { type: String, required: true },
     admissionDate: { type: Date, required: true },
     previousSchool: { type: String },
     academicHistory: [
@@ -78,6 +73,12 @@ const studentSchema = new Schema(
       enum: ["Active", "Inactive", "Suspended", "Graduated", "Transferred"],
       default: "Active",
     },
+    fees: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Fees",
+      },
+    ],
     isActive: { type: Boolean, default: true },
     archived: { type: Boolean, default: false },
     notes: { type: String },

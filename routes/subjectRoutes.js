@@ -14,7 +14,7 @@ router.get(
   subjectController.getSubjectsByDepartment
 );
 
-// Get subject by ID - should be last among GET routes
+// Get subject by ID - keep last
 router.get("/:id", subjectController.getSubjectById);
 
 // Create subject

@@ -20,7 +20,7 @@ const SubjectSchema = new mongoose.Schema(
       trim: true,
     },
     gradeLevels: {
-      type: [String], // e.g. ['Primary 3', 'Primary 4']
+      type: [String],
       required: true,
     },
     department: {
@@ -34,10 +34,6 @@ const SubjectSchema = new mongoose.Schema(
       },
     ],
 
-    academicYear: {
-      type: String,
-      required: true, // e.g., '2023/2024'
-    },
     isCompulsory: {
       type: Boolean,
       default: false,

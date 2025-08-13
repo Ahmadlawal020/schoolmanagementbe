@@ -6,7 +6,6 @@ const classSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true,
     },
     grade: {
       type: String,

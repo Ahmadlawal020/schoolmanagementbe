@@ -1,111 +1,7 @@
-// const Timetable = require("../models/TimeTableSchema");
-// const asyncHandler = require("express-async-handler");
-
-// // 🧾 Get all timetables (optionally filter by className)
-// const getAllTimetables = asyncHandler(async (req, res) => {
-//   const filter = req.query.className ? { className: req.query.className } : {};
-//   const timetables = await Timetable.find(filter)
-//     .populate("schedule.periods.subject")
-//     .lean();
-
-//   if (!timetables.length) {
-//     return res.status(404).json({ message: "No timetables found." });
-//   }
-//   res.json(timetables);
-// });
-
-// // 📘 Get one timetable by ID
-// const getTimetableById = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
-//   const tt = await Timetable.findById(id)
-//     .populate("schedule.periods.subject")
-//     .lean();
-//   if (!tt) {
-//     return res.status(404).json({ message: "Timetable not found." });
-//   }
-//   res.json(tt);
-// });
-
-// // ➕ Create new timetable
-// const createTimetable = asyncHandler(async (req, res) => {
-//   const { className, schedule } = req.body;
-//   if (!className || !Array.isArray(schedule) || schedule.length === 0) {
-//     return res.status(400).json({ message: "Missing required data." });
-//   }
-
-//   // Optional: ensure only Monday–Friday and no duplicates:
-//   const days = schedule.map((d) => d.day);
-//   const uniqueDays = new Set(days);
-//   if (
-//     uniqueDays.size !== days.length ||
-//     [...uniqueDays].some(
-//       (d) =>
-//         ![
-//           "Monday",
-//           "Tuesday",
-//           "Wednesday",
-//           "Thursday",
-//           "Friday",
-//           "Saturday",
-//           "Sunday",
-//         ].includes(d)
-//     )
-//   ) {
-//     return res
-//       .status(400)
-//       .json({ message: "Schedule must contain unique weekdays Mon–Fri." });
-//   }
-
-//   const tt = await Timetable.create({ className, schedule });
-//   res.status(201).json({
-//     message: `Timetable for ${tt.className} created.`,
-//     id: tt._id,
-//   });
-// });
-
-// // ✏️ Update an existing timetable
-// const updateTimetable = asyncHandler(async (req, res) => {
-//   const { id, className, schedule } = req.body;
-//   if (!id || !className || !Array.isArray(schedule)) {
-//     return res
-//       .status(400)
-//       .json({ message: "ID, className and schedule required." });
-//   }
-
-//   const tt = await Timetable.findById(id).exec();
-//   if (!tt) return res.status(404).json({ message: "Timetable not found." });
-
-//   tt.className = className;
-//   tt.schedule = schedule;
-//   tt.updatedAt = Date.now();
-
-//   await tt.save();
-//   res.json({ message: `Timetable ${tt.className} updated.` });
-// });
-
-// // 🗑️ Delete a timetable
-// const deleteTimetable = asyncHandler(async (req, res) => {
-//   const { id } = req.body;
-//   if (!id) return res.status(400).json({ message: "ID required." });
-
-//   const tt = await Timetable.findById(id).exec();
-//   if (!tt) return res.status(404).json({ message: "Timetable not found." });
-
-//   await tt.deleteOne();
-//   res.json({ message: `Timetable for ${tt.className} deleted.` });
-// });
-
-// module.exports = {
-//   getAllTimetables,
-//   getTimetableById,
-//   createTimetable,
-//   updateTimetable,
-//   deleteTimetable,
-// };
-
 const Timetable = require("../models/TimeTableSchema");
+const Subject = require("../models/subjectSchema");
 const asyncHandler = require("express-async-handler");
-
+const mongoose = require("mongoose");
 // 🧾 Get all timetables (optionally filter by class ID)
 const getAllTimetables = asyncHandler(async (req, res) => {
   const filter = req.query.class ? { class: req.query.class } : {};
@@ -293,10 +189,161 @@ const deleteTimetable = asyncHandler(async (req, res) => {
   res.json({ message: `Timetable deleted.` });
 });
 
+// // 🧑‍🏫 Get timetables by teacher ID
+// const getTimetablesByTeacher = asyncHandler(async (req, res) => {
+//   const { teacherId } = req.params;
+
+//   if (!mongoose.Types.ObjectId.isValid(teacherId)) {
+//     return res.status(400).json({ message: "Invalid teacher ID." });
+//   }
+
+//   // First, find all subjects taught by this teacher
+//   const subjects = await Subject.find({ teacherIds: teacherId }).lean();
+
+//   if (!subjects.length) {
+//     return res.status(404).json({
+//       message: "No subjects found for this teacher.",
+//       suggestion: "This teacher may not be assigned to any subjects yet.",
+//     });
+//   }
+
+//   const subjectIds = subjects.map((subject) => subject._id);
+
+//   // Then find all timetables that have these subjects in their periods
+//   const timetables = await Timetable.find({
+//     "schedule.periods.subject": { $in: subjectIds },
+//   })
+//     .populate("class")
+//     .populate("schedule.periods.subject")
+//     .lean();
+
+//   if (!timetables.length) {
+//     return res.status(404).json({
+//       message: "No timetables found for this teacher.",
+//       suggestion:
+//         "The subjects assigned to this teacher may not be scheduled in any timetable yet.",
+//     });
+//   }
+
+//   // Format the response to make it more teacher-centric
+//   const formattedTimetables = timetables.map((timetable) => {
+//     const teacherSchedule = timetable.schedule
+//       .map((day) => {
+//         const teacherPeriods = day.periods.filter((period) =>
+//           subjectIds.includes(period.subject._id.toString())
+//         );
+
+//         return {
+//           day: day.day,
+//           periods: teacherPeriods,
+//         };
+//       })
+//       .filter((day) => day.periods.length > 0);
+
+//     return {
+//       class: timetable.class,
+//       schedule: teacherSchedule,
+//     };
+//   });
+
+//   res.json({
+//     teacherId,
+//     subjects: subjects.map((s) => ({ _id: s._id, name: s.name, code: s.code })),
+//     timetables: formattedTimetables,
+//   });
+// });
+
+// 🧑‍🏫 Get timetables by teacher ID
+const getTimetablesByTeacher = asyncHandler(async (req, res) => {
+  const { teacherId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(teacherId)) {
+    return res.status(400).json({ message: "Invalid teacher ID." });
+  }
+
+  // 1️⃣ Find all subjects this teacher is assigned to
+  const subjects = await Subject.find({ teacherIds: teacherId }).lean();
+
+  if (!subjects.length) {
+    return res.status(404).json({
+      message: "No subjects found for this teacher.",
+      suggestion: "This teacher may not be assigned to any subjects yet.",
+    });
+  }
+
+  const subjectIds = subjects.map((subject) => subject._id.toString());
+
+  // 2️⃣ Find all timetables that might contain these subjects
+  const timetables = await Timetable.find({
+    "schedule.periods.subject": { $in: subjectIds },
+  })
+    .populate("class")
+    .populate("schedule.periods.subject")
+    .lean();
+
+  if (!timetables.length) {
+    return res.status(404).json({
+      message: "No timetables found for this teacher.",
+      suggestion:
+        "The subjects assigned to this teacher may not be scheduled in any timetable yet.",
+    });
+  }
+
+  // 3️⃣ Format the response to show only relevant periods for this teacher
+  const formattedTimetables = timetables.map((timetable) => {
+    const teacherSchedule = timetable.schedule
+      .map((day) => {
+        const teacherPeriods = day.periods.filter((period) =>
+          subjectIds.includes(period.subject._id.toString())
+        );
+
+        return {
+          day: day.day,
+          periods: teacherPeriods.map((period) => ({
+            time: `${period.startTime} - ${period.endTime}`,
+            subject: {
+              _id: period.subject._id,
+              name: period.subject.name,
+              code: period.subject.code,
+            },
+            room: timetable.class.roomNumber || "Not specified",
+          })),
+        };
+      })
+      .filter((day) => day.periods.length > 0);
+
+    return {
+      class: {
+        _id: timetable.class._id,
+        name: timetable.class.className,
+        grade: timetable.class.grade,
+        section: timetable.class.section,
+        roomNumber: timetable.class.roomNumber,
+      },
+      schedule:
+        teacherSchedule.length > 0
+          ? teacherSchedule
+          : [{ day: "No scheduled periods", periods: [] }],
+    };
+  });
+
+  // 4️⃣ Send response
+  res.json({
+    teacherId,
+    subjects: subjects.map((s) => ({
+      _id: s._id,
+      name: s.name,
+      code: s.code,
+    })),
+    timetables: formattedTimetables,
+  });
+});
+
 module.exports = {
   getAllTimetables,
   getTimetableById,
   createTimetable,
   updateTimetable,
   deleteTimetable,
+  getTimetablesByTeacher,
 };

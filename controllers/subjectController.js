@@ -61,11 +61,11 @@ const createSubject = asyncHandler(async (req, res) => {
     gradeLevels,
     department,
     teacherIds,
-    academicYear,
+
     isCompulsory,
   } = req.body;
 
-  if (!name || !code || !gradeLevels || !academicYear) {
+  if (!name || !code || !gradeLevels) {
     return res.status(400).json({ message: "Required fields missing." });
   }
 
@@ -81,7 +81,6 @@ const createSubject = asyncHandler(async (req, res) => {
     gradeLevels,
     department,
     teacherIds,
-    academicYear,
     isCompulsory,
   });
 
@@ -104,8 +103,6 @@ const updateSubject = asyncHandler(async (req, res) => {
     gradeLevels,
     department,
     teacherIds,
-
-    academicYear,
     isCompulsory,
   } = req.body;
 
@@ -134,7 +131,6 @@ const updateSubject = asyncHandler(async (req, res) => {
   subject.teacherIds = Array.isArray(teacherIds)
     ? teacherIds
     : subject.teacherIds;
-  subject.academicYear = academicYear ?? subject.academicYear;
   subject.isCompulsory =
     typeof isCompulsory === "boolean" ? isCompulsory : subject.isCompulsory;
 

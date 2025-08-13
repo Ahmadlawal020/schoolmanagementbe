@@ -6,6 +6,7 @@ const {
   createTimetable,
   updateTimetable,
   deleteTimetable,
+  getTimetablesByTeacher,
 } = require("../controllers/timetableController");
 
 // Routes for all timetables
@@ -15,6 +16,8 @@ router
   .post(createTimetable); // POST /api/timetables
 
 // Routes for a specific timetable by ID
+
+router.get("/teacher/:teacherId", getTimetablesByTeacher);
 router
   .route("/:id")
   .get(getTimetableById) // GET /api/timetables/:id

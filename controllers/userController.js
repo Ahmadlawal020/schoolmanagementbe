@@ -59,6 +59,41 @@ const getDepartments = async (req, res) => {
   }
 };
 
+// @desc    Get students for a specific user (e.g., a parent)
+// @route   GET /api/students/user/:userId
+// @access  Private
+const getStudentsByUserId = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  // Get user by ID and populate student info in `children`
+  const user = await User.findById(userId)
+    .populate(
+      "children.studentId",
+      "firstName lastName admissionNumber currentClass gender dateOfBirth"
+    )
+    .lean();
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found." });
+  }
+
+  if (!user.children?.length) {
+    return res
+      .status(404)
+      .json({ message: "No students associated with this user." });
+  }
+
+  const students = user.children
+    .map((child) => child.studentId)
+    .filter(Boolean); // Remove nulls if any
+
+  if (!students.length) {
+    return res.status(404).json({ message: "No valid student records found." });
+  }
+
+  res.json(students);
+});
+
 // @desc    Get user by ID
 // @route   GET /api/users/:id
 // @access  Private
@@ -289,4 +324,5 @@ module.exports = {
   getAllStaffs,
   getDepartments,
   getAllParents,
+  getStudentsByUserId,
 };

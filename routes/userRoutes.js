@@ -9,6 +9,7 @@ const {
   getAllStaffs,
   getDepartments,
   getAllParents,
+  getStudentsByUserId,
 } = require("../controllers/userController");
 
 // GET /api/users/staffs → getAllStaffs
@@ -24,6 +25,8 @@ router
   .post(createUser)
   .patch(updateUser)
   .delete(deleteUser);
+
+router.get("/children/:userId", getStudentsByUserId);
 
 // GET /api/users/:id → get single user
 router.route("/:id").get(getUserById);

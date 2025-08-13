@@ -39,7 +39,7 @@ const createStudent = asyncHandler(async (req, res) => {
     lastName,
     dateOfBirth,
     gender,
-    currentClass,
+    gradeLevel, // changed from currentClass
     admissionDate,
     primaryContact,
     address,
@@ -53,7 +53,7 @@ const createStudent = asyncHandler(async (req, res) => {
     !lastName ||
     !dateOfBirth ||
     !gender ||
-    !currentClass?.grade ||
+    !gradeLevel || // updated validation
     !admissionDate ||
     !primaryContact?.name ||
     !primaryContact?.relationship ||
@@ -76,7 +76,7 @@ const createStudent = asyncHandler(async (req, res) => {
     lastName,
     dateOfBirth,
     gender,
-    currentClass,
+    gradeLevel, // replaced currentClass
     admissionDate,
     primaryContact,
     address,

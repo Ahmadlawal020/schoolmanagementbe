@@ -6,7 +6,7 @@ const PeriodSchema = new mongoose.Schema({
   endTime: { type: String, required: true },
   subject: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Subject", // 👈 Reference to the Subject model
+    ref: "Subject",
     required: true,
   },
 });

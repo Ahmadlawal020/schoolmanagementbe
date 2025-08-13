@@ -45,9 +45,6 @@ const getClassById = asyncHandler(async (req, res) => {
   res.json(classData);
 });
 
-// @desc    Create a new class
-// @route   POST /api/classes
-// @access  Private
 const createClass = asyncHandler(async (req, res) => {
   const {
     className,
@@ -66,9 +63,19 @@ const createClass = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Required fields missing." });
   }
 
-  const duplicate = await Class.findOne({ className }).lean().exec();
+  // ✅ Check for same name + same academic year
+  const duplicate = await Class.findOne({
+    className,
+    academicYear,
+  })
+    .lean()
+    .exec();
+
   if (duplicate) {
-    return res.status(409).json({ message: "Class name already exists." });
+    return res.status(409).json({
+      message:
+        "A class with this name already exists in the same academic year.",
+    });
   }
 
   const classObject = {
@@ -90,9 +97,9 @@ const createClass = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid class data." });
   }
 
-  res
-    .status(201)
-    .json({ message: `Class ${newClass.className} created successfully.` });
+  res.status(201).json({
+    message: `Class ${newClass.className} created successfully.`,
+  });
 });
 
 // @desc    Update a class
@@ -111,12 +118,24 @@ const updateClass = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "Class not found." });
   }
 
-  if (className && className !== classData.className) {
-    const duplicate = await Class.findOne({ className }).lean().exec();
+  if (
+    (className && className !== classData.className) ||
+    (academicYear && academicYear !== classData.academicYear)
+  ) {
+    const duplicate = await Class.findOne({
+      className: className || classData.className,
+      academicYear: academicYear || classData.academicYear,
+      _id: { $ne: id },
+    })
+      .lean()
+      .exec();
+
     if (duplicate) {
-      return res.status(409).json({ message: "Class name already exists." });
+      return res.status(409).json({
+        message:
+          "A class with this name already exists in the same academic year.",
+      });
     }
-    classData.className = className;
   }
 
   classData.grade = grade ?? classData.grade;
@@ -166,7 +185,7 @@ const getClassesByTeacherId = asyncHandler(async (req, res) => {
   const classes = await Class.find({ classTeacher: teacherId })
     .populate("classTeacher", "firstName lastName email") // optional
     .populate("students", "firstName lastName admissionNumber")
-    .populate("subjects", "name")
+    .populate("subjects", "name teacherIds")
     .lean();
 
   if (!classes.length) {

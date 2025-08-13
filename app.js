@@ -25,12 +25,17 @@ app.use("/", express.static(path.join(__dirname, "public")));
 app.use("/", require("./routes/root"));
 
 app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/user", require("./routes/userRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/student", require("./routes/studentRoutes"));
 app.use("/api/classes", require("./routes/classRoutes"));
 app.use("/api/subjects", require("./routes/subjectRoutes"));
 app.use("/api/timetables", require("./routes/timetableRoutes"));
 app.use("/api/events", require("./routes/eventRoutes"));
+app.use("/api/attendance", require("./routes/attendance"));
+app.use("/api/assessments", require("./routes/assessmentRoutes"));
+app.use("/api/assignments", require("./routes/assignmentRoutes"));
+app.use("/api/settings", require("./routes/settingsRoutes"));
+app.use("/api/fees", require("./routes/feesRoutes"));
 
 // 404 Handler - Catch-all for unmatched routes
 app.all("*", (req, res) => {
