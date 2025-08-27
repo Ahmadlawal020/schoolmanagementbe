@@ -155,10 +155,32 @@ const deleteStudent = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Get students by grade level
+// @route   GET /api/students/grade/:gradeLevel
+// @access  Private
+const getStudentsByGradeLevel = asyncHandler(async (req, res) => {
+  const { gradeLevel } = req.params;
+
+  if (!gradeLevel) {
+    return res.status(400).json({ message: "Grade level is required." });
+  }
+
+  const students = await Student.find({ gradeLevel }).lean();
+
+  if (!students?.length) {
+    return res
+      .status(404)
+      .json({ message: `No students found in grade ${gradeLevel}.` });
+  }
+
+  res.json(students);
+});
+
 module.exports = {
   getAllStudents,
   getStudentById,
   createStudent,
   updateStudent,
   deleteStudent,
+  getStudentsByGradeLevel,
 };

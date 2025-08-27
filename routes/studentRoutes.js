@@ -10,6 +10,8 @@ router.get("/", studentController.getAllStudents);
 // @desc    Get student by ID
 router.get("/:id", studentController.getStudentById);
 
+router.get("/grade/:gradeLevel", studentController.getStudentsByGradeLevel);
+
 // @route   POST /api/students
 // @desc    Create a new student
 router.post("/", studentController.createStudent);
